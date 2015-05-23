@@ -41,3 +41,8 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/.settings
+/.classpath
+/.project
+/target/classes
+/target/test-classes/com/falconsocial/demo/szl/websocket
