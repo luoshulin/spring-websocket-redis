@@ -23,21 +23,20 @@ public class MessageController {
     private SimpMessagingTemplate brokerMessagingTemplate;
 
     /**
-     * WebSocket controller channel for receiving {@link Message} object from websocket clients
-     * 
-     * @param message
-     * @return
-     * @throws InterruptedException 
+     * WebSocket channel for receiving {@link Message} object from websocket clients
      */
     @MessageMapping("/broadcast")
     @SendTo("/topic/messages")
-    public PushMessage socketBroadcast(Message message) throws InterruptedException {
+    public PushMessage socketBroadcast(Message message) {
         // TODO read client address from websocket session
         return new PushMessage(message, "dummy");
     }
 
+    /**
+     * Rest resource for message broadcast
+     */
     @RequestMapping(value = "/message", method = RequestMethod.POST)
-    public ResponseEntity<Void> broadcast(@RequestBody Message message, HttpServletRequest request) throws InterruptedException {
+    public ResponseEntity<Void> broadcast(@RequestBody Message message, HttpServletRequest request) {
 
         PushMessage broadcastMessage = new PushMessage(message, request.getRemoteAddr());
         brokerMessagingTemplate.convertAndSend("/topic/messages", broadcastMessage);
