@@ -15,10 +15,9 @@ public class PushMessage extends Message {
     private String sender;
 
     public PushMessage(String content, MessageType type, String sender) {
+        super(content, type);
         this.sender = sender;
         date = LocalDateTime.now();
-        setContent(content);
-        setType(type);
     }
 
     public PushMessage(Message origin, String sender) {
@@ -29,16 +28,8 @@ public class PushMessage extends Message {
         return date;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
     public String getSender() {
         return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
     }
 
 }
