@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
 import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListener;
@@ -16,6 +17,7 @@ import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListe
  *
  */
 @Profile("!embedded")
+@Component
 public class RedisEventPublisherImpl implements MessageEventPublisher {
 
     @Autowired

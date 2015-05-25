@@ -36,7 +36,7 @@ public class RedisMessageServiceImpl implements MessageService {
         // Add by id
         messageRedisTemplate.opsForValue().set(generateKey(message.getId()), message);
         // Add to messages collection
-        messageRedisTemplate.opsForList().leftPush(ALL_MESSAGE_KEY, message);
+        messageRedisTemplate.opsForList().rightPush(ALL_MESSAGE_KEY, message);
 
         return message;
     }

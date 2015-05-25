@@ -2,17 +2,16 @@
 <html>
 <head>
 <title>Hello WebSocket</title>
+<script src="jquery-2.1.4.min.js"></script>
 <script src="sockjs-0.3.4.min.js"></script>
 <script src="stomp.js"></script>
+
 <script type="text/javascript">
 	var stompClient = null;
 
 	function setConnected(connected) {
 		document.getElementById('connect').disabled = connected;
 		document.getElementById('disconnect').disabled = !connected;
-		document.getElementById('conversationDiv').style.visibility = connected ? 'visible'
-				: 'hidden';
-		document.getElementById('response').innerHTML = '';
 	}
 
 	function connect() {
@@ -21,8 +20,8 @@
 		stompClient.connect({}, function(frame) {
 			setConnected(true);
 			console.log('Connected: ' + frame);
-			stompClient.subscribe('/topic/messages', function(greeting) {
-				showGreeting(JSON.parse(greeting.body));
+			stompClient.subscribe('/topic/messages', function(data) {
+				showMessage(JSON.parse(data.body));
 			});
 		});
 	}
@@ -35,45 +34,89 @@
 		console.log("Disconnected");
 	}
 
-	function sendName() {
-		var message = document.getElementById('name').value;
+	function broadcastMessageViaSocket() {
+		var message = $('#message').val();
 		stompClient.send("/app/broadcast", {}, JSON.stringify({
 			'content' : message,
 			'type' : 'INFO'
 		}));
 	}
 
-	function showGreeting(message) {
-		var response = document.getElementById('response');
-		var p = document.createElement('p');
-		p.style.wordWrap = 'break-word';
+	function broadcastMessage() {
+		var message = $('#message').val();
 
+		$.ajax({
+			url : '/api/message',
+			type : "POST",
+			data : JSON.stringify({
+				'content' : message,
+				'type' : 'INFO'
+			}),
+			contentType : "application/json; charset=utf-8",
+			dataType : "json",
+			success : function() {
+				console.log("success");
+			}
+		})
+	}
+
+	function showMessage(message) {
+		var builtMessage = buildMessageString(message);
+		$('#messages').append('<p>' + builtMessage + '</p>');
+	}
+
+	function showMessages(messageArray) {
+		$.each(messageArray, function(index, value) {
+			showMessage(value);
+		})
+	}
+
+	function buildMessageString(message) {
 		var dateText = message.date[0] + '.' + message.date[1] + '.'
 				+ message.date[2] + ' ' + message.date[3] + ':'
 				+ message.date[4] + ':' + message.date[5];
-		var message = message.type + '  ' + message.sender + " says: "
-				+ message.content + '	(' + dateText + ')'
-		p.appendChild(document.createTextNode(message));
-		response.appendChild(p);
+		var messageString = message.type + '  ' + message.sender + " says: "
+				+ message.content + '	(' + dateText + ')';
+
+		return messageString;
+	}
+
+	function findAll() {
+		$('#messages').empty();
+		$.get('/api/message', function(data) {
+			showMessages(data);
+		});
 	}
 </script>
+<script>
+	$(document).ready(findAll);
+</script>
 </head>
-<body onload="disconnect()">
+<body onload="disconnect();connect();">
 	<noscript>
 		<h2 style="color: #ff0000">Seems your browser doesn't support
 			Javascript! Websocket relies on Javascript being enabled. Please
 			enable Javascript and reload this page!</h2>
 	</noscript>
+
 	<div>
+		<h2>Websocket and Redis demo</h2>
 		<div>
+			<div>WebSocket connection</div>
 			<button id="connect" onclick="connect();">Connect</button>
 			<button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
 		</div>
 		<div id="conversationDiv">
-			<label>What is your name?</label><input type="text" id="name" />
-			<button id="sendName" onclick="sendName();">Send</button>
-			<p id="response"></p>
+			<p>
+				<label>Broadcast message: </label><input type="text" id="message" />
+				<button id="broadcastMessage" onclick="broadcastMessage();">Send</button>
+			</p>
+			<p>
+				<button id="findAll" onclick="findAll();">Refresh</button>
+			</p>
+			<div id="messages"></div>
 		</div>
 	</div>
+
 </body>
 </html>

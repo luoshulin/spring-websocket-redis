@@ -51,7 +51,7 @@ import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
 @SpringApplicationConfiguration(classes = SpringWebsocketRedisApplication.class)
 @WebAppConfiguration
 @IntegrationTest
-@ActiveProfiles("embedded")
+//@ActiveProfiles("embedded")
 public class MessageControllerIntegrationTest {
 
     @Mock
