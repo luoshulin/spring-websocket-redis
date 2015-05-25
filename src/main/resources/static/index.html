@@ -48,9 +48,9 @@
 		var p = document.createElement('p');
 		p.style.wordWrap = 'break-word';
 
-		var dateText = message.date.year + '.' + message.date.month + '.'
-				+ message.date.dayOfMonth + ' ' + message.date.hour + ':'
-				+ message.date.minute + ':' + message.date.second
+		var dateText = message.date[0] + '.' + message.date[1] + '.'
+				+ message.date[2] + ' ' + message.date[3] + ':'
+				+ message.date[4] + ':' + message.date[5];
 		var message = message.type + '  ' + message.sender + " says: "
 				+ message.content + '	(' + dateText + ')'
 		p.appendChild(document.createTextNode(message));

@@ -1,43 +1,34 @@
 package com.falconsocial.demo.szl.websocket.domain.model;
 
+import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.falconsocial.demo.szl.websocket.web.model.BasicMessage;
 
 /**
- * Domain object modeling messages in Redis
+ * Immutable domain object modeling messages in persistent store
  * 
  * @author szabol
  *
  */
 public class Message extends BasicMessage {
 
-    private Long id;
+    private String id = UUID.randomUUID().toString();
 
-    private LocalDateTime date;
+    private LocalDateTime date = LocalDateTime.now();
 
     private String sender;
 
-    public Message() {
+    private Message() {
 
     }
 
-    public Message(String content, MessageType type, String sender) {
+    private Message(String content, MessageType type, String sender) {
         super(content, type);
         this.sender = sender;
         date = LocalDateTime.now();
-    }
-
-    public Message(BasicMessage origin, String sender) {
-        this(origin.getContent(), origin.getType(), sender);
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
     }
 
     public LocalDateTime getDate() {
@@ -48,12 +39,67 @@ public class Message extends BasicMessage {
         return sender;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    /**
+     * Builder class for constructing Immutable {@link Message} objects
+     * 
+     * @author szabol
+     *
+     */
+    public static class MessageBuilder {
+
+        private Message message;
+
+        private MessageBuilder(Message message) {
+            this.message = message;
+        }
+
+        public MessageBuilder withContent(String content) {
+            message.setContent(content);
+            return this;
+        }
+
+        public MessageBuilder withType(MessageType type) {
+            message.setType(type);
+            return this;
+        }
+
+        public MessageBuilder sentBy(String sender) {
+            message.sender = sender;
+            return this;
+        }
+
+        public static MessageBuilder empty() {
+            return new MessageBuilder(new Message());
+        }
+
+        public static MessageBuilder copyOf(Message message) {
+            Message newMessage = new Message();
+            newMessage.setContent(message.getContent());
+            newMessage.setType(message.getType());
+            newMessage.date = message.getDate();
+            newMessage.sender = message.getSender();
+            newMessage.id = message.getId();
+
+            return new MessageBuilder(newMessage);
+        }
+
+        public static MessageBuilder randomInfo() {
+            Message newMessage = new Message();
+            newMessage.setContent(randomAlphabetic(200));
+            newMessage.setType(MessageType.INFO);
+            newMessage.sender = randomAlphabetic(20);
+
+            return new MessageBuilder(newMessage);
+        }
+
+        public Message build() {
+            return message;
+        }
+
     }
 
 }

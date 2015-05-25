@@ -17,12 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
+import com.falconsocial.demo.szl.websocket.domain.model.Message.MessageBuilder;
 import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
+import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
 import com.falconsocial.demo.szl.websocket.web.model.BasicMessage;
 
 @Controller
 @RequestMapping("/api")
 public class MessageController {
+
+    private static final String WEBSOCKET_MESSAGE_TOPIC_PATH = "/topic/messages";
 
     @Autowired
     private SimpMessagingTemplate brokerMessagingTemplate;
@@ -30,22 +34,29 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
-    //TODO error handling
-    
+    @Autowired
+    private MessageEventPublisher messageEventPublisher;
+
+    // TODO error handling
+
     /**
      * Rest resource for message broadcast
      */
     @RequestMapping(value = "/message", method = RequestMethod.POST)
     public ResponseEntity<Void> broadcast(@RequestBody BasicMessage message, HttpServletRequest request) {
 
-        Message broadcastMessage = new Message(message, request.getRemoteAddr());
+        Message receivedMessage = createBuilderFromBasicMessage(message)
+                .sentBy(request.getRemoteAddr())
+                .build();
 
-        Message create = messageService.create(broadcastMessage);
+        // Publish message received event
+        messageEventPublisher.publishMessageReceived(receivedMessage);
+        // Push on websocket
+        brokerMessagingTemplate.convertAndSend(WEBSOCKET_MESSAGE_TOPIC_PATH, receivedMessage);
 
-        brokerMessagingTemplate.convertAndSend("/topic/messages", broadcastMessage);
-
+        // TODO fix this ID thing for maybe UUID
         return ResponseEntity
-                .created(URI.create(getServerUrl(request) + "/api/message/" + create.getId()))
+                .created(URI.create(getServerUrl(request) + "/api/message/" + receivedMessage.getId()))
                 .build();
     }
 
@@ -64,7 +75,7 @@ public class MessageController {
      * Rest resource for querying all the persisted messages
      */
     @RequestMapping(value = "/message/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
 
         messageService.delete(id);
 
@@ -75,10 +86,16 @@ public class MessageController {
      * WebSocket channel for receiving {@link BasicMessage} object from websocket clients
      */
     @MessageMapping("/broadcast")
-    @SendTo("/topic/messages")
+    @SendTo(WEBSOCKET_MESSAGE_TOPIC_PATH)
     public Message socketBroadcast(BasicMessage message) {
         // TODO read client address from websocket session
-        return new Message(message, "dummy");
+        return createBuilderFromBasicMessage(message).build();
+    }
+
+    private MessageBuilder createBuilderFromBasicMessage(BasicMessage message) {
+        return MessageBuilder.empty()
+                .withContent(message.getContent())
+                .withType(message.getType());
     }
 
     private String getServerUrl(HttpServletRequest request) {
@@ -92,4 +109,9 @@ public class MessageController {
     protected void setMessageService(MessageService messageService) {
         this.messageService = messageService;
     }
+
+    protected void setMessageEventPublisher(MessageEventPublisher messageEventPublisher) {
+        this.messageEventPublisher = messageEventPublisher;
+    }
+
 }

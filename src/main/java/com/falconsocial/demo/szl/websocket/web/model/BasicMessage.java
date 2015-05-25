@@ -22,11 +22,11 @@ public class BasicMessage {
         this.type = type;
     }
 
-    public void setContent(String content) {
+    protected void setContent(String content) {
         this.content = content;
     }
 
-    public void setType(MessageType type) {
+    protected void setType(MessageType type) {
         this.type = type;
     }
 

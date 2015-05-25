@@ -6,6 +6,7 @@ import com.falconsocial.demo.szl.websocket.domain.model.Message;
 
 /**
  * Interface which defines domain methods connected to {@link Message} objects
+ * 
  * @author szabol
  *
  */
@@ -31,13 +32,13 @@ public interface MessageService {
      * @param id The queried id
      * @return The message with the given id or <code>null</code> if not found.
      */
-    Message findById(Long id);
+    Message findById(String id);
 
     /**
      * Deletes the message with the given id.
      * 
-     * @throws NullPointerException if no message was found with the given id.
+     * @throws IllegalStateException if no message was found with the given id.
      */
-    void delete(Long id);
+    void delete(String id);
 
 }

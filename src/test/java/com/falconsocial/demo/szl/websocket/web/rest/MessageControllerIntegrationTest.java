@@ -1,9 +1,6 @@
 package com.falconsocial.demo.szl.websocket.web.rest;
 
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
-import static org.apache.commons.lang.math.RandomUtils.nextLong;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,8 +35,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.falconsocial.demo.szl.websocket.SpringWebsocketRedisApplication;
 import com.falconsocial.demo.szl.websocket.TestUtil;
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
-import com.falconsocial.demo.szl.websocket.domain.model.MessageType;
+import com.falconsocial.demo.szl.websocket.domain.model.Message.MessageBuilder;
+import com.falconsocial.demo.szl.websocket.domain.model.MessageAssertions;
 import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
+import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
 
 /**
  * Integration tests for {@link MessageController}. In real life this should be split to integration and unit test parts 
@@ -51,10 +51,14 @@ import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
 @SpringApplicationConfiguration(classes = SpringWebsocketRedisApplication.class)
 @WebAppConfiguration
 @IntegrationTest
-public class MessageControllerTest {
+@ActiveProfiles("embedded")
+public class MessageControllerIntegrationTest {
 
     @Mock
     private MessageService mockMessageService;
+
+    @Mock
+    private MessageEventPublisher mockMessageEventPublisher;
 
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
@@ -73,6 +77,7 @@ public class MessageControllerTest {
         MessageController messageController = new MessageController();
         messageController.setBrokerMessagingTemplate(socketSpy);
         messageController.setMessageService(mockMessageService);
+        messageController.setMessageEventPublisher(mockMessageEventPublisher);
         this.restControllerMockMvc = MockMvcBuilders.standaloneSetup(messageController).build();
     }
 
@@ -86,11 +91,11 @@ public class MessageControllerTest {
         ArgumentCaptor<Message> sentPayload = ArgumentCaptor.forClass(Message.class);
         verify(socketSpy).convertAndSend(Matchers.eq("/topic/messages"), sentPayload.capture());
 
-        assertMessage(testMessage, sentPayload.getValue());
+        MessageAssertions.assertMessageEquals(testMessage, sentPayload.getValue());
     }
 
     @Test
-    public void testBroadcastSaves() throws Exception {
+    public void testBroadcastPublishesOnRedis() throws Exception {
 
         Message testMessage = createRandomMessage();
 
@@ -98,9 +103,9 @@ public class MessageControllerTest {
 
         // Asserts
         ArgumentCaptor<Message> sentPayload = ArgumentCaptor.forClass(Message.class);
-        verify(mockMessageService).create(sentPayload.capture());
+        verify(mockMessageEventPublisher).publishMessageReceived(sentPayload.capture());
 
-        assertMessage(testMessage, sentPayload.getValue());
+        MessageAssertions.assertMessageEquals(testMessage, sentPayload.getValue());
     }
 
     @Test
@@ -120,7 +125,7 @@ public class MessageControllerTest {
     @Test
     public void testDelete() throws Exception {
 
-        long testId = nextLong();
+        String testId = randomAlphabetic(20);
         when(mockMessageService.findById(testId)).thenReturn(createRandomMessage());
 
         restControllerMockMvc.perform(delete("/api/message/{id}", testId))
@@ -140,14 +145,7 @@ public class MessageControllerTest {
     }
 
     private Message createRandomMessage() {
-        return new Message(randomAlphabetic(200), MessageType.INFO, randomAlphabetic(20));
-    }
-
-    private static void assertMessage(Message testMessage, Message captured) {
-        assertEquals(testMessage.getContent(), captured.getContent());
-        assertEquals(testMessage.getType(), captured.getType());
-        assertNotNull(captured.getSender());
-        assertNotNull(captured.getDate());
+        return MessageBuilder.randomInfo().build();
     }
 
 }
