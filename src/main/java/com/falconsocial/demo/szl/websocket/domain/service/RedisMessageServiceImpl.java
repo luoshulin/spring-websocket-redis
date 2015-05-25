@@ -43,7 +43,6 @@ public class RedisMessageServiceImpl implements MessageService {
 
     @Override
     public Collection<Message> findAll() {
-        // TODO paging
         Collection<Message> contacts = messageRedisTemplate.opsForList().range(ALL_MESSAGE_KEY, 0, Integer.MAX_VALUE);
         return contacts;
     }

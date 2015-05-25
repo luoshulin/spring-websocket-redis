@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,16 +19,12 @@ import com.falconsocial.demo.szl.websocket.domain.model.Message;
 import com.falconsocial.demo.szl.websocket.domain.model.Message.MessageBuilder;
 import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
 import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
+import com.falconsocial.demo.szl.websocket.web.events.NewMessageBroadcaster;
 import com.falconsocial.demo.szl.websocket.web.model.BasicMessage;
 
 @Controller
 @RequestMapping("/api")
 public class MessageController {
-
-    private static final String WEBSOCKET_MESSAGE_TOPIC_PATH = "/topic/messages";
-
-    @Autowired
-    private SimpMessagingTemplate brokerMessagingTemplate;
 
     @Autowired
     private MessageService messageService;
@@ -51,10 +46,7 @@ public class MessageController {
 
         // Publish message received event
         messageEventPublisher.publishMessageReceived(receivedMessage);
-        // Push on websocket
-        brokerMessagingTemplate.convertAndSend(WEBSOCKET_MESSAGE_TOPIC_PATH, receivedMessage);
 
-        // TODO fix this ID thing for maybe UUID
         return ResponseEntity
                 .created(URI.create(getServerUrl(request) + "/api/message/" + receivedMessage.getId()))
                 .build();
@@ -86,7 +78,7 @@ public class MessageController {
      * WebSocket channel for receiving {@link BasicMessage} object from websocket clients
      */
     @MessageMapping("/broadcast")
-    @SendTo(WEBSOCKET_MESSAGE_TOPIC_PATH)
+    @SendTo(NewMessageBroadcaster.WEBSOCKET_MESSAGE_TOPIC_PATH)
     public Message socketBroadcast(BasicMessage message) {
         // TODO read client address from websocket session
         return createBuilderFromBasicMessage(message).build();
@@ -100,10 +92,6 @@ public class MessageController {
 
     private String getServerUrl(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-    }
-
-    protected void setBrokerMessagingTemplate(SimpMessagingTemplate brokerMessagingTemplate) {
-        this.brokerMessagingTemplate = brokerMessagingTemplate;
     }
 
     protected void setMessageService(MessageService messageService) {

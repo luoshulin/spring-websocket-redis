@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
 import com.falconsocial.demo.szl.websocket.domain.model.Message.MessageBuilder;
 import com.falconsocial.demo.szl.websocket.domain.model.MessageAssertions;
-import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListener;
+import com.falconsocial.demo.szl.websocket.domain.redis.NewMessageEventListener;
 
 /**
  * Unit test for {@link RedisEventPublisher}
@@ -28,7 +28,7 @@ public class RedisEventPublisherImplTest {
     @Mock
     private RedisTemplate<String, Message> mockRedisTemplate;
 
-    private RedisEventPublisherImpl tested = new RedisEventPublisherImpl();
+    private RedisMessageEventPublisherImpl tested = new RedisMessageEventPublisherImpl();
 
     @Before
     public void setup() {
@@ -42,7 +42,7 @@ public class RedisEventPublisherImplTest {
         tested.publishMessageReceived(testMessage);
 
         ArgumentCaptor<Message> publishedMessage = ArgumentCaptor.forClass(Message.class);
-        verify(mockRedisTemplate).convertAndSend(eq(MessageReceiveEventListener.EVENT_RECEIVE_MESSAGE_KEY), publishedMessage.capture());
+        verify(mockRedisTemplate).convertAndSend(eq(NewMessageEventListener.EVENT_RECEIVE_MESSAGE_KEY), publishedMessage.capture());
 
         MessageAssertions.assertMessageEquals(testMessage, publishedMessage.getValue());
     }

@@ -13,7 +13,8 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
-import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListener;
+import com.falconsocial.demo.szl.websocket.domain.redis.NewMessageEventListener;
+import com.falconsocial.demo.szl.websocket.web.events.NewMessageBroadcaster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 
@@ -48,17 +49,29 @@ public class RedisConfig {
     }
 
     @Bean
-    public MessageListenerAdapter messageListenerAdapter(MessageReceiveEventListener eventListener) {
+    public MessageListenerAdapter messageListenerAdapter(NewMessageEventListener eventListener) {
         MessageListenerAdapter adapter = new MessageListenerAdapter(eventListener);
         adapter.setSerializer(messageRedisSerializer());
         return adapter;
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, MessageReceiveEventListener eventListener) {
+    public MessageListenerAdapter messageBroadcasterAdapter(NewMessageBroadcaster eventListener) {
+        MessageListenerAdapter adapter = new MessageListenerAdapter(eventListener);
+        adapter.setSerializer(messageRedisSerializer());
+        return adapter;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, NewMessageEventListener eventListener,
+            NewMessageBroadcaster broadcastListener) {
+
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(messageListenerAdapter(eventListener), Arrays.asList(new ChannelTopic(MessageReceiveEventListener.EVENT_RECEIVE_MESSAGE_KEY)));
+        container.addMessageListener(messageListenerAdapter(eventListener),
+                Arrays.asList(new ChannelTopic(NewMessageEventListener.EVENT_RECEIVE_MESSAGE_KEY)));
+        container.addMessageListener(messageBroadcasterAdapter(broadcastListener),
+                Arrays.asList(new ChannelTopic(NewMessageBroadcaster.EVENT_RECEIVE_MESSAGE_KEY)));
 
         return container;
     }

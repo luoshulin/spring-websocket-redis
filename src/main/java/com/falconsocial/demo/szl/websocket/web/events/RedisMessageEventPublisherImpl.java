@@ -8,7 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
-import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListener;
+import com.falconsocial.demo.szl.websocket.domain.redis.NewMessageEventListener;
 
 /**
  * {@link MessageEventPublisher} implementation which using Redis for event publishing
@@ -18,7 +18,7 @@ import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListe
  */
 @Profile("!embedded")
 @Component
-public class RedisEventPublisherImpl implements MessageEventPublisher {
+public class RedisMessageEventPublisherImpl implements MessageEventPublisher {
 
     @Autowired
     private RedisTemplate<String, Message> messageRedisTemplate;
@@ -26,7 +26,7 @@ public class RedisEventPublisherImpl implements MessageEventPublisher {
     @Override
     public void publishMessageReceived(Message message) {
         // Publish on Redis
-        messageRedisTemplate.convertAndSend(MessageReceiveEventListener.EVENT_RECEIVE_MESSAGE_KEY, checkNotNull(message, "The received message must not be null!"));
+        messageRedisTemplate.convertAndSend(NewMessageEventListener.EVENT_RECEIVE_MESSAGE_KEY, checkNotNull(message, "The received message must not be null!"));
     }
 
     protected void setMessageRedisTemplate(RedisTemplate<String, Message> messageRedisTemplate) {

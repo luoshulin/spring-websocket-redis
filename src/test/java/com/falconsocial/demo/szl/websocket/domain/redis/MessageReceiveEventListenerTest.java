@@ -16,7 +16,7 @@ import com.falconsocial.demo.szl.websocket.domain.model.MessageAssertions;
 import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
 
 /**
- * Unit test for {@link MessageReceiveEventListener}
+ * Unit test for {@link NewMessageEventListener}
  * 
  * @author szabol
  *
@@ -27,7 +27,7 @@ public class MessageReceiveEventListenerTest {
     @Mock
     private MessageService mockMessageService;
 
-    private MessageReceiveEventListener tested = new MessageReceiveEventListener();
+    private NewMessageEventListener tested = new NewMessageEventListener();
 
     @Before
     public void setupMocks() {

@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import com.falconsocial.demo.szl.websocket.domain.model.Message;
-import com.falconsocial.demo.szl.websocket.domain.redis.MessageReceiveEventListener;
 import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
+import com.falconsocial.demo.szl.websocket.web.events.NewMessageBroadcaster;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 public class TestMessageServiceImpl implements MessageService, MessageEventPublisher {
 
     @Autowired
-    private MessageReceiveEventListener receiveEventListener;
+    private NewMessageBroadcaster newMessageBroadcaster;
 
     private List<Message> messageStore = new ArrayList<>();
 
@@ -64,9 +64,8 @@ public class TestMessageServiceImpl implements MessageService, MessageEventPubli
 
     @Override
     public void publishMessageReceived(Message message) {
-
         create(message);
-
+        newMessageBroadcaster.handleMessage(message, "test");
     }
 
 }

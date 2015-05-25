@@ -18,15 +18,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,8 +36,7 @@ import com.falconsocial.demo.szl.websocket.domain.service.MessageService;
 import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
 
 /**
- * Integration tests for {@link MessageController}. In real life this should be split to integration and unit test parts 
- * but now for the sake of simplicity we use this for unit testing also.
+ * Integration tests for {@link MessageController}.
  * 
  * @author szabol
  *
@@ -51,7 +45,6 @@ import com.falconsocial.demo.szl.websocket.web.events.MessageEventPublisher;
 @SpringApplicationConfiguration(classes = SpringWebsocketRedisApplication.class)
 @WebAppConfiguration
 @IntegrationTest
-//@ActiveProfiles("embedded")
 public class MessageControllerIntegrationTest {
 
     @Mock
@@ -60,11 +53,6 @@ public class MessageControllerIntegrationTest {
     @Mock
     private MessageEventPublisher mockMessageEventPublisher;
 
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-
-    private SimpMessagingTemplate socketSpy;
-
     private MockMvc restControllerMockMvc;
 
     @Before
@@ -72,26 +60,10 @@ public class MessageControllerIntegrationTest {
 
         MockitoAnnotations.initMocks(this);
 
-        socketSpy = Mockito.spy(simpMessagingTemplate);
-
         MessageController messageController = new MessageController();
-        messageController.setBrokerMessagingTemplate(socketSpy);
         messageController.setMessageService(mockMessageService);
         messageController.setMessageEventPublisher(mockMessageEventPublisher);
         this.restControllerMockMvc = MockMvcBuilders.standaloneSetup(messageController).build();
-    }
-
-    @Test
-    public void testBroadcastPushOnWebsocket() throws Exception {
-
-        Message testMessage = createRandomMessage();
-        callBroadcast(testMessage);
-
-        // Asserts
-        ArgumentCaptor<Message> sentPayload = ArgumentCaptor.forClass(Message.class);
-        verify(socketSpy).convertAndSend(Matchers.eq("/topic/messages"), sentPayload.capture());
-
-        MessageAssertions.assertMessageEquals(testMessage, sentPayload.getValue());
     }
 
     @Test
