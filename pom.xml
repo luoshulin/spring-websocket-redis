@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.falconsocial.demo.szl</groupId>
-	<artifactId>websocket</artifactId>
+	<artifactId>spring-websocket-redis</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -20,10 +20,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.finalName>spring-websocket-redis</project.build.finalName>
 		<start-class>com.falconsocial.demo.szl.websocket.SpringWebsocketRedisApplication</start-class>
 		<java.version>1.8</java.version>
 		<json.version>1.9.13</json.version>
-		<jackson.version>2.4.0</jackson.version>
+		<jackson.version>2.4.0</jackson.version>		
 	</properties>
 
 	<dependencies>
