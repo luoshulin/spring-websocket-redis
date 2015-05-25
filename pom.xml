@@ -22,6 +22,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<start-class>com.falconsocial.demo.szl.websocket.SpringWebsocketRedisApplication</start-class>
 		<java.version>1.8</java.version>
+		<json.version>1.9.13</json.version>
+		<jackson.version>2.4.0</jackson.version>
 	</properties>
 
 	<dependencies>
@@ -48,6 +50,17 @@
 			<artifactId>commons-lang</artifactId>
 			<version>2.4</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		<!-- TEST -->
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>

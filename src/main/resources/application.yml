@@ -1,3 +1,5 @@
+spring.redis.host: 192.168.59.103
+
 logging:
   level:
     org.springframework.web: DEBUG
